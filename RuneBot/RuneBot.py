@@ -5,7 +5,7 @@ import time
 from discord.ext import commands
 
 #establishing connection with discord
-TOKEN = 'OTA3MDc1OTU2ODc3OTU5MTcw.YYh6UA.iviNEC6i_M5ApjuUM0XTiqahlHA'
+TOKEN = 'OTA3MDc1OTU2ODc3OTU5MTcw.G_wZ61.MqgT-iCMf5e0DU9jr92IcrTnOHnTKAJ_OL86vY'
 
 client = discord.Client()
 
