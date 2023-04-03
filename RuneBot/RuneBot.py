@@ -22,17 +22,49 @@ async def on_ready():
 
 @bot.command()
 async def register(ctx: commands.Context):
-    print('hello')
     try:
-        print (ctx.message.author.id)
-        print (ctx.message.channel.id)
-        print (ctx.message.guild.id)
-        print (ctx.message.content)
-        print (userurl(ctx.message.content))
+        author = (ctx.message.author.id)
+        channel = (ctx.message.channel.id)
+        guild = (ctx.message.guild.id)
+        url = (userurl(ctx.message.content)[0])
+        UserName = (userurl(ctx.message.content)[1])
+        print (url)
+        print (UserName)
+        dbformat = (UserName, url, author, channel, guild)
+        await ctx.send(verifyuser(dbformat))
     except Exception as e:
         print(f"Error: {e}")
 
+@bot.command()
+async def unregister(ctx: commands.Context):
+    guild = (ctx.message.guild.id)
+    UserName = (userurl(ctx.message.content)[1])
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+    cur = conn.cursor()
+    cur.execute("Select * FROM Users WHERE UserName = ? AND GUILDID= ?", (UserName,guild))
+    if cur.fetchone() is None:
+        await ctx.send("User Not Registered To Receive HiScore Alerts On This Server")
+    else:
+        cur.execute("DELETE FROM Users WHERE UserName = ? AND GUILDID= ?", (UserName,guild))
+        conn.commit()
+        await ctx.send("User Has Been Unregistered From Receiving HiScore Alerts On This Server")
+
+@bot.command()
+async def registered(ctx: commands.Context):
+    guild = (ctx.message.guild.id)
+    conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+    cur = conn.cursor()
+    cur.execute("Select UserName FROM Users WHERE GUILDID= ?", (guild,))
+    rows = cur.fetchall()
+    if not rows:
+        await ctx.send("No Users Registered To Receive Hiscore Alerts On This Server")
+    else:
+        registeredusers = []
+        for i in rows:
+            registeredusers.append(i[0])
+        output = '\n'.join(registeredusers)
+        await ctx.send("Registered Users On This Server: \n" + output)
+
 
 
 
@@ -47,20 +79,25 @@ async def on_message_delete(message: discord.Message):
     msg = f"{message.author} has deleted the message: {message.content}"
     await message.channel.send(msg)
 
+
+
 categorylist = []
 def parsecategories():
-    import requests
-    # designating the web url to pull from
-    url = 'https://secure.runescape.com/m=hiscore_oldschool/overall'
-    r = requests.get(url)
-    from bs4 import BeautifulSoup
-    soup = BeautifulSoup(r.content, 'html.parser')
+    soup = soupy('https://secure.runescape.com/m=hiscore_oldschool/overall')
     contentcategory = soup.find('div', id='contentCategory')
     categorylist = contentcategory.find_all('a')
     for i in range(len(categorylist)):
         categorylist[i] = categorylist[i].text.strip()
     updatecategories(categorylist)
     pass
+
+def soupy(url):
+    import requests
+    from bs4 import BeautifulSoup
+    url = url
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    return soup
 
 def dbconnection(db_file):
     conn = None
@@ -115,6 +152,28 @@ def userurl(msgcontent):
         url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + msgcontent[1]
         username = msgcontent[1]
         return url, username
+
+def verifyuser(dbformat):
+    conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM Users WHERE UserName = ? AND URl = ? AND CHANNELID= ? AND GUILDID = ?", (dbformat[0], dbformat[1], dbformat[3], dbformat[4]))
+    if cur.fetchone() is None:
+        soup = soupy(dbformat[1])
+        header = soup.find('div', id='contentHiscores')
+        headercheck = header.text.strip()
+        headercheck = headercheck.replace('Ý', ' ')
+        if headercheck == (f'No player "{dbformat[0]}" found'):
+            print("User Not Found")
+            return ("User Does Not Exist On Old School Hiscores")
+        else:
+            print("User Found")
+            cur.execute("INSERT INTO Users (UserName, URL, UserID, ChannelID, GuildID) VALUES (?,?,?,?,?)",(dbformat[0], dbformat[1], dbformat[2], dbformat[3], dbformat[4]))
+            conn.commit()
+            return ("User Registered To Receive HiScore Alerts In This Channel/Server")
+    else:
+        print("User Already Exists")
+        return ("User Already Registered For Current Channel/Server")
+
 
 
 
