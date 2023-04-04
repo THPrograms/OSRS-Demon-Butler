@@ -66,8 +66,6 @@ async def registered(ctx: commands.Context):
         await ctx.send("Registered Users On This Server: \n" + output)
 
 
-
-
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
@@ -98,6 +96,23 @@ def soupy(url):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
     return soup
+
+def hiscoresoup():
+    data = []
+    soup = soupy('https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=Oborsbigtoe')
+    tableparent = soup.find('div', id='contentHiscores')
+    table = tableparent.find('table')
+    print (table)
+
+    print (table.find('tbody'))
+
+    rows = table.find_all('tr')
+    for row in rows:
+        cols = row.find_all('td')
+        cols = [ele.text.strip() for ele in cols]
+        data.append([ele for ele in cols if ele])
+
+    print (data)
 
 def dbconnection(db_file):
     conn = None
@@ -177,7 +192,7 @@ def verifyuser(dbformat):
 
 
 
-
+hiscoresoup()
 parsecategories()
 
 bot.run(os.getenv(str('TOKEN')))
