@@ -102,17 +102,43 @@ def hiscoresoup():
     soup = soupy('https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=Oborsbigtoe')
     tableparent = soup.find('div', id='contentHiscores')
     table = tableparent.find('table')
-    print (table)
-
-    print (table.find('tbody'))
-
     rows = table.find_all('tr')
     for row in rows:
         cols = row.find_all('td')
         cols = [ele.text.strip() for ele in cols]
         data.append([ele for ele in cols if ele])
+    del data[0:3]
+    statsupdate(data)
 
-    print (data)
+def statsupdate(data):
+    conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+    cur = conn.cursor()
+    headers = []
+    stats = []
+    for i in data:
+        if len(i) == 3:
+            headers.append(i[0])
+            headers.append(i[0] + " Rank")
+            headers.append(i[0] + " Score")
+            for i in i[0:]:
+                stats.append(i)
+        elif len(i) == 4:
+            headers.append(i[0])
+            headers.append(i[0] + " Rank")
+            headers.append(i[0] + " Level")
+            headers.append(i[0] + " XP")
+            for i in i[0:]:
+                stats.append(i)
+    headerstring = ', '.join(("\"" + str(header) + "\"" for header in headers))
+    statstring = ', '.join(("\"" + str(stat) + "\"" for stat in stats))
+    cur.execute("INSERT INTO PlayerStats (" + headerstring + ") VALUES (" + statstring + ")")
+    conn.commit()
+    print (statstring)
+    print (headerstring)
+
+
+
+
 
 def dbconnection(db_file):
     conn = None
@@ -148,11 +174,40 @@ def updatestatcols():
     cur.execute("SELECT * FROM Categories")
     for i in cur.fetchall():
         if i[0] not in tinfo:
-            istring = str(i[0])
-            iescape = ''.join(("\"", istring, "\""))
-            print(iescape)
-            cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + iescape + " TEXT")
-            conn.commit()
+            if i[1] == 'Skill':
+                istring = str(i[0])
+                irank= istring + " Rank"
+                ilevel = istring + " Level"
+                ixp = istring + " XP"
+                iescape = ''.join(("\"", istring, "\""))
+                irankescape = ''.join(("\"", irank, "\""))
+                ilevelescape = ''.join(("\"", ilevel, "\""))
+                ixpescape = ''.join(("\"", ixp, "\""))
+                print(iescape)
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + iescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + irankescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + ilevelescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + ixpescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                pass
+            elif i[1] == 'KC':
+                istring = str(i[0])
+                irank = str(istring + " Rank")
+                ilevel = str(istring + " Score")
+                iescape = ''.join(("\"", istring, "\""))
+                irankescape = ''.join(("\"", irank, "\""))
+                ilevelescape = ''.join(("\"", ilevel, "\""))
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + iescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + irankescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + ilevelescape + " TEXT DEFAULT 'None'")
+                conn.commit()
+                pass
+            else: pass
     print ("Column Up To Date")
     pass
 
@@ -191,8 +246,8 @@ def verifyuser(dbformat):
 
 
 
-
 hiscoresoup()
+
 parsecategories()
 
 bot.run(os.getenv(str('TOKEN')))
