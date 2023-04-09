@@ -36,6 +36,7 @@ async def on_ready():
 @bot.command()
 async def register(ctx: commands.Context):
     try:
+        print (ctx.message.content)
         author = (ctx.message.author.id)
         channel = (ctx.message.channel.id)
         guild = (ctx.message.guild.id)
@@ -282,7 +283,6 @@ def updatestatcols():
     pass
 
 def userurl(msgcontent):
-    msgcontent = (msgcontent).title()
     msgcontent = msgcontent.split()
     if len(msgcontent) == 3:
         url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + msgcontent[1] + '%A0' + msgcontent[2]
@@ -296,7 +296,8 @@ def userurl(msgcontent):
 def verifyuser(dbformat):
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
     cur = conn.cursor()
-    cur.execute("SELECT * FROM Users WHERE UserName = ? AND URl = ? AND CHANNELID= ? AND GUILDID = ?", (dbformat[0], dbformat[1], dbformat[3], dbformat[4]))
+    print (str(dbformat[0].lower()))
+    cur.execute("SELECT * FROM Users WHERE LOWER(UserName) = ? AND LOWER(URl) = ? AND CHANNELID= ? AND GUILDID = ?", (str(dbformat[0].lower()), str(dbformat[1].lower()), dbformat[3], dbformat[4]))
     if cur.fetchone() is None:
         soup = soupy(dbformat[1])
         header = soup.find('div', id='contentHiscores')
@@ -307,6 +308,7 @@ def verifyuser(dbformat):
             return ("User does not exist on Old School hiscores")
         else:
             print("User Found")
+            print (dbformat[0])
             cur.execute("INSERT INTO Users (UserName, URL, UserID, ChannelID, GuildID) VALUES (?,?,?,?,?)",(dbformat[0], dbformat[1], dbformat[2], dbformat[3], dbformat[4]))
             conn.commit()
             conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
