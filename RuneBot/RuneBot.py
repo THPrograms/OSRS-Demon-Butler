@@ -2,17 +2,13 @@ import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
-from bs4 import BeautifulSoup
-import requests
 import sqlite3
-from datetime import date, datetime
-import time
+from datetime import datetime
+
 from PIL import Image, ImageDraw, ImageFont
 from PIL import ImageFilter
 import random
-import math
 import asyncio
-import schedule
 from discord.ui import Button, View
 
 intents = discord.Intents.default()
@@ -22,10 +18,10 @@ intents.message_content = True
 
 """Need to add the ability for this to work with multiple servers"""
 
-
 load_dotenv()
 
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
+
 
 @bot.event
 async def on_ready():
@@ -33,15 +29,16 @@ async def on_ready():
     client.loop.create_task(schedule_function())
     print("We alive yo")
 
+
 @bot.command()
 async def register(ctx: commands.Context):
     try:
         print (ctx.message.content)
-        author = (ctx.message.author.id)
-        channel = (ctx.message.channel.id)
-        guild = (ctx.message.guild.id)
-        url = (userurl(ctx.message.content)[0])
-        UserName = (userurl(ctx.message.content)[1])
+        author = ctx.message.author.id
+        channel = ctx.message.channel.id
+        guild = ctx.message.guild.id
+        url = userurl(ctx.message.content)[0]
+        UserName = userurl(ctx.message.content)[1]
         print (url)
         print (UserName)
         dbformat = (UserName, url, author, channel, guild)
@@ -49,23 +46,25 @@ async def register(ctx: commands.Context):
     except Exception as e:
         print(f"Error: {e}")
 
+
 @bot.command()
 async def unregister(ctx: commands.Context):
-    guild = (ctx.message.guild.id)
-    UserName = (userurl(ctx.message.content)[1])
+    guild = ctx.message.guild.id
+    UserName = userurl(ctx.message.content)[1]
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
     cur = conn.cursor()
-    cur.execute("Select * FROM Users WHERE UserName = ? AND GUILDID= ?", (UserName,guild))
+    cur.execute("Select * FROM Users WHERE UserName = ? AND GUILDID= ?", (UserName, guild))
     if cur.fetchone() is None:
         await ctx.send("User Not Registered To Receive HiScore Alerts On This Server")
     else:
-        cur.execute("DELETE FROM Users WHERE UserName = ? AND GUILDID= ?", (UserName,guild))
+        cur.execute("DELETE FROM Users WHERE UserName = ? AND GUILDID= ?", (UserName, guild))
         conn.commit()
         await ctx.send("User Has Been Unregistered From Receiving HiScore Alerts On This Server")
 
+
 @bot.command()
 async def registered(ctx: commands.Context):
-    guild = (ctx.message.guild.id)
+    guild = ctx.message.guild.id
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
     cur = conn.cursor()
     cur.execute("Select UserName FROM Users WHERE GUILDID= ?", (guild,))
@@ -82,28 +81,24 @@ async def registered(ctx: commands.Context):
 
 @bot.event
 async def on_command_error(ctx, error):
-    print (ctx)
+    print(ctx)
     if isinstance(error, commands.CommandNotFound):
         await ctx.send("Unknown command.")
 
 
-@bot.event
-async def on_message_delete(message: discord.Message):
-    msg = f"{message.author} has deleted the message: {message.content}"
-    await message.channel.send(msg)
-
-async def send_message(guild_id,channel_id, image):
+async def send_message(guild_id, channel_id, image):
     channel = await bot.fetch_channel(channel_id)
-    print (channel)
-    print ('made it here')
-    with open (image, 'rb') as f:
+    print(channel)
+    print('made it here')
+    with open(image, 'rb') as f:
         picture = discord.File(f)
 
     await channel.send(file=picture)
 
 
-
 categorylist = []
+
+
 def parsecategories():
     soup = soupy('https://secure.runescape.com/m=hiscore_oldschool/overall')
     contentcategory = soup.find('div', id='contentCategory')
@@ -113,6 +108,7 @@ def parsecategories():
     updatecategories(categorylist)
     pass
 
+
 def soupy(url):
     import requests
     from bs4 import BeautifulSoup
@@ -120,6 +116,7 @@ def soupy(url):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
     return soup
+
 
 def hiscoresoup(UserData):
     data = []
@@ -157,14 +154,14 @@ def statsupdate(data, UserData):
                 stats.append(i)
     headerstring = ', '.join(("\"" + str(header) + "\"" for header in headers))
     statstring = ', '.join(("\"" + str(stat) + "\"" for stat in stats))
-    print (headerstring)
-    print (statstring)
+    print(headerstring)
+    print(statstring)
     cur.execute("INSERT INTO PlayerStats (" + headerstring + ") VALUES (" + statstring + ")")
     conn.commit()
 
+
 def getusers():
     Users = []
-    StatOutput = []
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
     cur = conn.cursor()
     cur.execute("SELECT * FROM Users")
@@ -173,8 +170,9 @@ def getusers():
         Users.append(list(i))
     return Users
 
+
 def statcompare(UserData):
-    print (UserData[0])
+    print(UserData[0])
     compstats = []
     finalstats = []
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
@@ -203,7 +201,7 @@ def statcompare(UserData):
     for i in compstats[0]:
         compindex = compstats[0].index(i)
         if i[0] not in oldstatcategories:
-            finalstats.append([UserData[0],i[0], 'None' ,i[1]])
+            finalstats.append([UserData[0], i[0], 'None', i[1]])
             del compstats[0][compindex]
 
     compstats[0].sort()
@@ -212,8 +210,9 @@ def statcompare(UserData):
     for i in compstats[0]:
         compindex = compstats[0].index(i)
         if i not in compstats[1]:
-            finalstats.append([UserData[0], i[0], compstats[1][compindex][1] ,i[1]])
+            finalstats.append([UserData[0], i[0], compstats[1][compindex][1], i[1]])
     return finalstats
+
 
 def dbconnection(db_file):
     conn = None
@@ -233,8 +232,9 @@ def updatecategories(categorylist):
             cur.execute("INSERT INTO Categories (Category) VALUES (?)", (i,))
             conn.commit()
     updatestatcols()
-    print ("Categories Up To Date")
+    print("Categories Up To Date")
     pass
+
 
 def updatestatcols():
     tinfo = []
@@ -248,7 +248,7 @@ def updatestatcols():
         if i[0] not in tinfo:
             if i[1] == 'Skill':
                 istring = str(i[0])
-                irank= istring + " Rank"
+                irank = istring + " Rank"
                 ilevel = istring + " Level"
                 ixp = istring + " XP"
                 iescape = ''.join(("\"", istring, "\""))
@@ -278,14 +278,17 @@ def updatestatcols():
                 cur.execute("ALTER TABLE PlayerStats ADD COLUMN " + ilevelescape + " TEXT DEFAULT 'None'")
                 conn.commit()
                 pass
-            else: pass
-    print ("Column Up To Date")
+            else:
+                pass
+    print("Column Up To Date")
     pass
+
 
 def userurl(msgcontent):
     msgcontent = msgcontent.split()
     if len(msgcontent) == 3:
-        url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + msgcontent[1] + '%A0' + msgcontent[2]
+        url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + msgcontent[1] + '%A0' + \
+              msgcontent[2]
         username = msgcontent[1] + ' ' + msgcontent[2]
         return url, username
     if len(msgcontent) == 2:
@@ -293,37 +296,40 @@ def userurl(msgcontent):
         username = msgcontent[1]
         return url, username
 
+
 def verifyuser(dbformat):
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
     cur = conn.cursor()
-    print (str(dbformat[0].lower()))
-    cur.execute("SELECT * FROM Users WHERE LOWER(UserName) = ? AND LOWER(URl) = ? AND CHANNELID= ? AND GUILDID = ?", (str(dbformat[0].lower()), str(dbformat[1].lower()), dbformat[3], dbformat[4]))
+    print(str(dbformat[0].lower()))
+    cur.execute("SELECT * FROM Users WHERE LOWER(UserName) = ? AND LOWER(URl) = ? AND CHANNELID= ? AND GUILDID = ?",
+                (str(dbformat[0].lower()), str(dbformat[1].lower()), dbformat[3], dbformat[4]))
     if cur.fetchone() is None:
         soup = soupy(dbformat[1])
         header = soup.find('div', id='contentHiscores')
         headercheck = header.text.strip()
         headercheck = headercheck.replace('Ý', ' ')
-        if headercheck == (f'No player "{dbformat[0]}" found'):
-            print("User Not Found")
-            return ("User does not exist on Old School hiscores")
+        if headercheck == f'No player "{dbformat[0]}" found':
+            print ("User Not Found")
+            return "User does not exist on Old School hiscores"
         else:
             print("User Found")
-            print (dbformat[0])
-            cur.execute("INSERT INTO Users (UserName, URL, UserID, ChannelID, GuildID) VALUES (?,?,?,?,?)",(dbformat[0], dbformat[1], dbformat[2], dbformat[3], dbformat[4]))
+            print(dbformat[0])
+            cur.execute("INSERT INTO Users (UserName, URL, UserID, ChannelID, GuildID) VALUES (?,?,?,?,?)",
+                        (dbformat[0], dbformat[1], dbformat[2], dbformat[3], dbformat[4]))
             conn.commit()
             conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
             cur = conn.cursor()
             cur.execute("SELECT * FROM Users Where UserName = ?", (dbformat[0],))
             row = cur.fetchall()
             UserData = list(row[0])
-            print (UserData)
+            print(UserData)
             Data = hiscoresoup(UserData)
             statsupdate(Data, UserData)
             statsupdate(Data, UserData)
-            return ("User registered to receive HiScore alerts in this channel/server")
+            return "User registered to receive HiScore alerts in this channel/server"
     else:
         print("User Already Exists")
-        return ("User already registered for current channel/server")
+        return "User already registered for current channel/server"
 
 
 async def statmonitor():
@@ -334,20 +340,28 @@ async def statmonitor():
         statsupdate(Data, iud)
         FinalStats = statcompare(iud)
         for stats in FinalStats:
-            if stats != []:
+            if stats:
                 output.append(stats)
-    if output == []:
-        print ("No stats to report")
+    if not output:
+        print("No stats to report")
     else:
-        print ("Stats to report")
+        print("Stats to report")
         extendinterface(output)
-        await send_message((str(UserData[0][4])), (str(UserData[0][3])),r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
-    print (output)
-    print ("Ran at: " + str(datetime.now()))
+        await send_message((str(UserData[0][4])), (str(UserData[0][3])),
+                           r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
+    print(output)
+    print("Ran at: " + str(datetime.now()))
 
 
-lvlup = [['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],['pLaYEr','sTrenGth ', 1, 5],]
+lvlup = [['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5],
+         ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5],
+         ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5],
+         ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5],
+         ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5],
+         ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5],
+         ['pLaYEr', 'sTrenGth ', 1, 5], ['pLaYEr', 'sTrenGth ', 1, 5], ]
 mssgbar = 'Tbot:'
+
 
 def gaussian_blur(newimage):
     width, height = newimage.size
@@ -355,7 +369,7 @@ def gaussian_blur(newimage):
     top_right = (width - 24, 10)
     bottom_left = (10, height - 45.5)
     bottom_right = (width - 24, height - 45.5)
-    print (top_left, top_right, bottom_left, bottom_right)
+    print(top_left, top_right, bottom_left, bottom_right)
     imagecrop = newimage.crop((top_left[0], top_left[1], bottom_right[0], bottom_right[1]))
     blurred_image = imagecrop.filter(ImageFilter.GaussianBlur(radius=3))
     final_image = newimage.copy()
@@ -384,8 +398,8 @@ def extendinterface(lvlup):
             top_half = image.crop((0, 0, width, split_point))
             bottom_half = image.crop((0, split_point, width, height))
             randommiddlefile = os.listdir(chunkdirectory)[chunknumber]
-            print (randommiddlefile)
-            middle_half = Image.open(r""+chunkdirectory+randommiddlefile)
+            print(randommiddlefile)
+            middle_half = Image.open(r"" + chunkdirectory + randommiddlefile)
 
             # Get the dimensions of the images
             width1, height1 = top_half.size
@@ -408,20 +422,25 @@ def extendinterface(lvlup):
 
         addtext(lvlup, gaussian_blur(new_image))
         return
-    else: addtext(lvlup, default_image)
+    else:
+        addtext(lvlup, default_image)
+
 
 def addtext(lvlup, useimage):
     image = useimage
     width, height = image.size
     draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\runescape_uf\runescape_uf.ttf", 15)
+    font = ImageFont.truetype(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\runescape_uf\runescape_uf.ttf",
+                              15)
     textheight = 43
     draw.text((11, height - 43), mssgbar, (0, 0, 0), font=font)
     for i in lvlup:
         textheight = textheight + 16
-        draw.text((11, height - textheight), (str(i[0]) + " has grown stronger! " + str(i[1]) + ": " + str(i[2]) + " -> " + str(i[3])), (0, 0, 0), font=font)
+        draw.text((11, height - textheight),
+                  (str(i[0]) + " has grown stronger! " + str(i[1]) + ": " + str(i[2]) + " -> " + str(i[3])), (0, 0, 0),
+                  font=font)
     image.save(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
-    print ('Image created')
+    print('Image created')
 
 
 """print (extendinterface())"""
@@ -430,12 +449,14 @@ sched = True
 
 parsecategories()
 
+
 async def schedule_function():
     while True:
         await asyncio.sleep(300)
         await statmonitor()
 
-"""Functions below still need refactoring"""
+
+"""Functions below still need refactoring
 
 hslist = ['Overall', 'Attack', 'Defence', 'Strength', 'Hitpoints', 'Ranged', 'Prayer',
           'Magic', 'Cooking', 'Woodcutting', 'Fletching', 'Fishing', 'Firemaking', 'Crafting', 'Smithing', 'Mining',
@@ -450,27 +471,29 @@ hslist = ['Overall', 'Attack', 'Defence', 'Strength', 'Hitpoints', 'Ranged', 'Pr
           'Hespori', 'Kalphite Queen', 'King Black Dragon', 'Kraken', "Kree'Arra", "K'ril Tsutsaroth", 'Mimic',
           'Nightmare', "Phosani's Nightmare", 'Obor', 'Sarachnis', 'Scorpia', 'Skotizo', 'Tempoross', 'The Gauntlet',
           'The Corrupted Gauntlet', 'Theatre of Blood', 'Theatre of Blood: Hard Mode', 'Thermonuclear Smoke Devil',
-          'TzKal-Zuk', 'TzTok-Jad', 'Venenatis', "Vet'ion", 'Vorkath', 'Wintertodt', 'Zalcano', 'Zulrah','N/A']
+          'TzKal-Zuk', 'TzTok-Jad', 'Venenatis', "Vet'ion", 'Vorkath', 'Wintertodt', 'Zalcano', 'Zulrah', 'N/A']
+
 
 @bot.command()
 async def rank(ctx: commands.Context):
     ctx.content = ctx.content.lower()
     gnamelookup = ctx.content.split()
     glength = len(gnamelookup)
-    gnamelast = ctx.content.split()[glength-1:]
+    gnamelast = ctx.content.split()[glength - 1:]
     gnameinput = ctx.content.split()[1:]
 
     def listtostring(gnameinput):
         str1 = " "
-        return (str1.join(gnameinput)).replace(" ","+")
+        return (str1.join(gnameinput)).replace(" ", "+")
 
     def listtostring2(gnamelast):
         str1 = " "
-        return (str1.join(gnamelast)).replace(" ","+")
+        return (str1.join(gnamelast)).replace(" ", "+")
 
     import requests
-    #designating the web url to pull from
-    url = 'https://secure.runescape.com/m=hiscore_oldschool_ironman/group-ironman/?groupName='+ (listtostring(gnameinput).title())
+    # designating the web url to pull from
+    url = 'https://secure.runescape.com/m=hiscore_oldschool_ironman/group-ironman/?groupName=' + (
+        listtostring(gnameinput).title())
 
     r = requests.get(url)
 
@@ -479,10 +502,10 @@ async def rank(ctx: commands.Context):
     soup = BeautifulSoup(r.content, 'html.parser')
 
     rows = soup.select('tbody tr')
-    #grabbing all data in the table body on the osrs highscores
+    # grabbing all data in the table body on the osrs highscores
     n = soup.find_all('td')
     Gdata = n
-    #write the entire table body data into a text file for review
+    # write the entire table body data into a text file for review
     file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\GroupIronStats", "w+")
 
     file1.write(str(Gdata))
@@ -525,7 +548,10 @@ async def rank(ctx: commands.Context):
         gtotexp = str(silkstats4)[236:246]
         print(silkstats4)
         # outputting the results into discord message
-        await ctx.channel.send('```Group Name: ' + gname.title() + '\nRank: ' + grank + '\nTotal Level: ' + gtotlvl + '\nTotal XP: ' + gtotexp + '```'.format(ctx.author))
+        await ctx.channel.send(
+            '```Group Name: ' + gname.title() + '\nRank: ' + grank + '\nTotal Level: ' + gtotlvl + '\nTotal XP: ' + gtotexp + '```'.format(
+                ctx.author))
+
 
 @bot.command()
 async def skill(ctx: commands.Context):
@@ -536,16 +562,16 @@ async def skill(ctx: commands.Context):
     def listtostring(pnameinput):
         str1 = " "
         return (str1.join(pnameinput)).replace(" ", "%A0")
+
     def listtostring2(pnameinput):
         str1 = " "
         return (str1.join(pnameinput))
 
-    print (listtostring(pnameinput))
-    print (SkillLookup)
+    print(listtostring(pnameinput))
+    print(SkillLookup)
 
     import requests
     import lxml.html as lh
-
 
     url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + (listtostring(pnameinput))
     # Create a handle, page, to handle the contents of the website
@@ -563,7 +589,6 @@ async def skill(ctx: commands.Context):
         i += 1
         name = t.text_content()
         pstats = pstats + ('%d:"%s"' % (i, name))
-
 
     file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "w+")
 
@@ -583,7 +608,8 @@ async def skill(ctx: commands.Context):
             break
 
     if flag == 0:
-        await ctx.channel.send('```' + SkillLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.author))
+        await ctx.channel.send(
+            '```' + SkillLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.author))
     else:
         file1.close()
 
@@ -595,7 +621,10 @@ async def skill(ctx: commands.Context):
         prank = (personalstats[index + 1]).strip()
         plevel = (personalstats[index + 2]).strip()
         pxp = (personalstats[index + 3]).strip()
-        await ctx.channel.send('```Name: ' + listtostring2(pnameinput) + '\nSkill: ' + skill + '\nRank: ' + prank + '\nLevel: ' + plevel + '\nXP: ' + pxp + '```'.format(ctx.author))
+        await ctx.channel.send('```Name: ' + listtostring2(
+            pnameinput) + '\nSkill: ' + skill + '\nRank: ' + prank + '\nLevel: ' + plevel + '\nXP: ' + pxp + '```'.format(
+            ctx.author))
+
 
 @bot.command()
 async def kc(ctx: commands.Context):
@@ -606,16 +635,16 @@ async def kc(ctx: commands.Context):
     def listtostring(pnameinput):
         str1 = " "
         return (str1.join(pnameinput)).replace(" ", "%A0")
+
     def listtostring2(pnameinput):
         str1 = " "
         return (str1.join(pnameinput))
 
-    print (listtostring(pnameinput))
-    print (BossLookup)
+    print(listtostring(pnameinput))
+    print(BossLookup)
 
     import requests
     import lxml.html as lh
-
 
     url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + (listtostring(pnameinput))
     # Create a handle, page, to handle the contents of the website
@@ -633,7 +662,6 @@ async def kc(ctx: commands.Context):
         i += 1
         name = t.text_content()
         pstats = pstats + ('%d:"%s"' % (i, name))
-
 
     file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "w+")
 
@@ -653,7 +681,8 @@ async def kc(ctx: commands.Context):
             break
 
     if flag == 0:
-        await ctx.channel.send('```' + BossLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.author))
+        await ctx.channel.send(
+            '```' + BossLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.author))
     else:
         file1.close()
 
@@ -664,58 +693,61 @@ async def kc(ctx: commands.Context):
         skillboss = (personalstats[index - 1]).strip()
         prank = (personalstats[index]).strip()
         pscore = (personalstats[index + 1]).strip()
-        await ctx.channel.send('```Name: ' + listtostring2(pnameinput) + '\nBoss: ' + skillboss + '\nRank: ' + prank + '\nScore: ' + pscore + '```'.format(ctx.author))
-        #embedVar = discord.Embed(title="OSRS High Scores",description="This bot is a work in progress, thank you for giving it a try.",color=0x00fff0, timestamp=datetime.datetime.utcnow())
-        #embedVar.set_thumbnail(url="https://i.imgur.com/ZIsEXmZ.png")
-        #embedVar.add_field(name="Commands:",value="!rank [group name] - Pulls Group Iron group ranking from OSRS High Scores\n\n!skill [skill] [playername] - Pulls the current stats for the provided player's skill\n\n!kc [boss/minigame](Use First Or Last Name Ex: Rex For Daganoth Rex) [playername] - Pulls The Current Stats For The Provided Player And Boss/Minigame",inline=False)
-        #embedVar.add_field(name="Creator:", value="Thomikaze#4519", inline=False)
-        #embedVar.add_field(name="Contact:", value="TommyF.Herndon@gmail.com", inline=False)
-        #embedVar.set_footer(text="Version 1.0")
-        #await message.channel.send(embed=embedVar)
+        await ctx.channel.send('```Name: ' + listtostring2(
+            pnameinput) + '\nBoss: ' + skillboss + '\nRank: ' + prank + '\nScore: ' + pscore + '```'.format(ctx.author))
+        # embedVar = discord.Embed(title="OSRS High Scores",description="This bot is a work in progress, thank you for giving it a try.",color=0x00fff0, timestamp=datetime.utcnow())
+        # embedVar.set_thumbnail(url="https://i.imgur.com/ZIsEXmZ.png")
+        # embedVar.add_field(name="Commands:",value="!rank [group name] - Pulls Group Iron group ranking from OSRS High Scores\n\n!skill [skill] [playername] - Pulls the current stats for the provided player's skill\n\n!kc [boss/minigame](Use First Or Last Name Ex: Rex For Daganoth Rex) [playername] - Pulls The Current Stats For The Provided Player And Boss/Minigame",inline=False)
+        # embedVar.add_field(name="Creator:", value="Thomikaze#4519", inline=False)
+        # embedVar.add_field(name="Contact:", value="TommyF.Herndon@gmail.com", inline=False)
+        # embedVar.set_footer(text="Version 1.0")
+        # await message.channel.send(embed=embedVar)
+
 
 @bot.command()
 async def help(ctx: commands.Context):
-    embedVar = discord.Embed(title="OSRS High Scores", description="This bot is a work in progress, thank you for giving it a try.", color=0x00fff0, timestamp=datetime.datetime.utcnow())
+    embedVar = discord.Embed(title="OSRS High Scores",
+                             description="This bot is a work in progress, thank you for giving it a try.",
+                             color=0x00fff0, timestamp=datetime.utcnow())
     embedVar.set_thumbnail(url="https://i.imgur.com/ZIsEXmZ.png")
-    embedVar.add_field(name="Commands:", value="!rank [group name] - Pulls Group Iron group ranking from OSRS High Scores\n\n!skill [skill] [playername] - Pulls the current stats for the provided player's skill\n\n!kc [boss/minigame](Use First Or Last Name Ex: Rex For Daganoth Rex) [playername] - Pulls The Current Stats For The Provided Player And Boss/Minigame", inline=False)
-    embedVar.add_field(name="Creator:", value="Thomikaze#4519",inline=False)
+    embedVar.add_field(name="Commands:",
+                       value="!rank [group name] - Pulls Group Iron group ranking from OSRS High Scores\n\n!skill [skill] [playername] - Pulls the current stats for the provided player's skill\n\n!kc [boss/minigame](Use First Or Last Name Ex: Rex For Daganoth Rex) [playername] - Pulls The Current Stats For The Provided Player And Boss/Minigame",
+                       inline=False)
+    embedVar.add_field(name="Creator:", value="Thomikaze#4519", inline=False)
     embedVar.add_field(name="Contact:", value="TommyF.Herndon@gmail.com", inline=False)
     embedVar.set_footer(text="Version 1.0")
     await ctx.channel.send(embed=embedVar)
+
 
 @bot.command()
 async def player(ctx: commands.Context):
     ctx.content = (ctx.content).title()
     pnameinput = ctx.content.split()[1:]
 
-
     def listtostring(pnameinput):
         str1 = " "
         return (str1.join(pnameinput)).replace(" ", "%A0")
-
 
     def listtostring2(pnameinput):
         str1 = " "
         return (str1.join(pnameinput))
 
-
     print(listtostring(pnameinput))
-
 
     import requests
     import lxml.html as lh
 
     url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + (listtostring(pnameinput))
-    print (url)
+    print(url)
     # Create a handle, page, to handle the contents of the website
     page = requests.get(url)
-    print (page)
+    print(page)
     # Store the contents of the website under doc
     doc = lh.fromstring(page.content)
-    print (doc)
+    print(doc)
     # Parse data that are stored between <tr>..</tr> of HTML
     tr_elements = doc.xpath('//tr')
-    print (tr_elements)
+    print(tr_elements)
     # Create empty list
     col = []
     i = 0
@@ -741,9 +773,6 @@ async def player(ctx: commands.Context):
     with open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "w") as file1:
         file1.writelines(data)
     file1.close()
-
-
-
 
     file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "r")
     slist = []
@@ -778,14 +807,13 @@ async def player(ctx: commands.Context):
     for I in flist:
         file2.write((str(I)) + "\n")
 
-    print (flist)
+    print(flist)
     file2.close()
 
+    # for I in hslist:
+    # print(I)
 
-    #for I in hslist:
-       #print(I)
-
-    print (plist)
+    print(plist)
     print(slist)
     plist = []
     button1 = Button(label="Main")
@@ -907,11 +935,16 @@ async def player(ctx: commands.Context):
     Zalcano = (personalstats[int(psline[80].strip()) + 1]).strip()
     Zulrah = (personalstats[int(psline[81].strip()) + 1]).strip()
 
-    embedVar = discord.Embed(title=listtostring2(pnameinput)+" - High Scores",description="This bot is a work in progress, thank you for giving it a try.",color=0x00fff0, timestamp=datetime.datetime.now())
+    embedVar = discord.Embed(title=listtostring2(pnameinput) + " - High Scores",
+                             description="This bot is a work in progress, thank you for giving it a try.",
+                             color=0x00fff0, timestamp=datetime.datetime.now())
     embedVar.set_thumbnail(url="https://i.imgur.com/itFUcLj.jpg")
     embedVar.add_field(name="Overall", value=Overall, inline=False)
 
-    embedVar1 = discord.Embed(title=listtostring2(pnameinput)+" - High Scores",description="Displaying Character Stats For " + listtostring2(pnameinput) + "\n===============================",color=0x00fff0, timestamp=datetime.datetime.utcnow())
+    embedVar1 = discord.Embed(title=listtostring2(pnameinput) + " - High Scores",
+                              description="Displaying Character Stats For " + listtostring2(
+                                  pnameinput) + "\n===============================", color=0x00fff0,
+                              timestamp=datetime.utcnow())
     embedVar1.set_thumbnail(url="https://i.imgur.com/itFUcLj.jpg")
     embedVar1.add_field(name="Attack", value=Attack, inline=True)
     embedVar1.add_field(name="Defence", value=Defence, inline=True)
@@ -937,7 +970,10 @@ async def player(ctx: commands.Context):
     embedVar1.add_field(name="Hunter", value=Hunter, inline=True)
     embedVar1.add_field(name="Construction", value=Construction, inline=True)
 
-    embedVar2 = discord.Embed(title=listtostring2(pnameinput)+" - High Scores",description="Displaying Counts For Bosses/MiniGames B-C For " + listtostring2(pnameinput) + "\n===========================================",color=0x00fff0, timestamp=datetime.datetime.utcnow())
+    embedVar2 = discord.Embed(title=listtostring2(pnameinput) + " - High Scores",
+                              description="Displaying Counts For Bosses/MiniGames B-C For " + listtostring2(
+                                  pnameinput) + "\n===========================================", color=0x00fff0,
+                              timestamp=datetime.utcnow())
     embedVar2.set_thumbnail(url="https://i.imgur.com/itFUcLj.jpg")
     embedVar2.add_field(name="Bounty Hunter \nHunter", value=BountyHunterHunter, inline=True)
     embedVar2.add_field(name="Bounty Hunter \nRogue", value=BountyHunterRogue, inline=True)
@@ -964,7 +1000,10 @@ async def player(ctx: commands.Context):
     embedVar2.add_field(name="Corporeal \nBeast", value=CorporealBeast, inline=True)
     embedVar2.add_field(name="Crazy \nArchaeologist", value=CrazyArchaeologist, inline=True)
 
-    embedVar3 = discord.Embed(title=listtostring2(pnameinput)+" - High Scores",description="Displaying Counts For Bosses/MiniGames D-S For " + listtostring2(pnameinput) + "\n===========================================",color=0x00fff0, timestamp=datetime.datetime.utcnow())
+    embedVar3 = discord.Embed(title=listtostring2(pnameinput) + " - High Scores",
+                              description="Displaying Counts For Bosses/MiniGames D-S For " + listtostring2(
+                                  pnameinput) + "\n===========================================", color=0x00fff0,
+                              timestamp=datetime.utcnow())
     embedVar3.set_thumbnail(url="https://i.imgur.com/itFUcLj.jpg")
     embedVar3.add_field(name="Dagannoth \nPrime", value=DagannothPrime, inline=True)
     embedVar3.add_field(name="Dagannoth \nRex", value=DagannothRex, inline=True)
@@ -987,14 +1026,17 @@ async def player(ctx: commands.Context):
     embedVar3.add_field(name="Scorpia", value=Scorpia, inline=True)
     embedVar3.add_field(name="Skotizo", value=Skotizo, inline=True)
 
-    embedVar4 = discord.Embed(title=listtostring2(pnameinput)+" - High Scores",description="Displaying Counts For Bosses/MiniGames T-Z For " + listtostring2(pnameinput) + "\n===========================================",color=0x00fff0, timestamp=datetime.datetime.utcnow())
+    embedVar4 = discord.Embed(title=listtostring2(pnameinput) + " - High Scores",
+                              description="Displaying Counts For Bosses/MiniGames T-Z For " + listtostring2(
+                                  pnameinput) + "\n===========================================", color=0x00fff0,
+                              timestamp=datetime.utcnow())
     embedVar4.set_thumbnail(url="https://i.imgur.com/itFUcLj.jpg")
     embedVar4.add_field(name="Tempoross", value=Tempoross, inline=True)
     embedVar4.add_field(name="The Gauntlet", value=TheGauntlet, inline=True)
     embedVar4.add_field(name="The Corrupted \nGauntlet", value=TheCorruptedGauntlet, inline=True)
     embedVar4.add_field(name="Theatre of Blood", value=TheatreofBlood, inline=True)
-    embedVar4.add_field(name="Theatre of Blood: \nHard Mode", value=TheatreofBloodHardMode,inline=True)
-    embedVar4.add_field(name="Thermonuclear \nSmoke Devil", value=ThermonuclearSmokeDevil,inline=True)
+    embedVar4.add_field(name="Theatre of Blood: \nHard Mode", value=TheatreofBloodHardMode, inline=True)
+    embedVar4.add_field(name="Thermonuclear \nSmoke Devil", value=ThermonuclearSmokeDevil, inline=True)
     embedVar4.add_field(name="TzKal-Zuk", value=TzKaZuk, inline=True)
     embedVar4.add_field(name="TzTok-Jad", value=TzTokJad, inline=True)
     embedVar4.add_field(name="Venenatis", value=Venenatis, inline=True)
@@ -1006,14 +1048,19 @@ async def player(ctx: commands.Context):
     embedVar4.set_footer(text="Version 1.0")
 
     await ctx.channel.send(embed=embedVar, view=view1)
+
     async def button_callback1(interaction):
         await interaction.message.edit(embed=embedVar, view=view1)
+
     async def button_callback2(interaction):
         await interaction.message.edit(embed=embedVar1, view=view2)
+
     async def button_callback3(interaction):
         await interaction.message.edit(embed=embedVar2, view=view3)
+
     async def button_callback4(interaction):
         await interaction.message.edit(embed=embedVar3, view=view4)
+
     async def button_callback5(interaction):
         await interaction.message.edit(embed=embedVar4, view=view5)
 
@@ -1024,8 +1071,7 @@ async def player(ctx: commands.Context):
     button5.callback = button_callback5
 
     file1.close()
-    file2.close()
+    file2.close()"""
+
 
 bot.run(os.getenv(str('TOKEN')))
-
-
