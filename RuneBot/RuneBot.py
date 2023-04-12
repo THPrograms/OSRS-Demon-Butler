@@ -457,7 +457,7 @@ parsecategories()
 
 async def schedule_function():
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(300)
         await statmonitor()
 
 bot.run(os.getenv(str('TOKEN')))
