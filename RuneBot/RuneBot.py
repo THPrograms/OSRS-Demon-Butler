@@ -4,12 +4,14 @@ import os
 from dotenv import load_dotenv
 import sqlite3
 from datetime import datetime
-
 from PIL import Image, ImageDraw, ImageFont
 from PIL import ImageFilter
 import random
 import asyncio
+import traceback
 from discord.ui import Button, View
+
+
 
 intents = discord.Intents.default()
 intents.members = True
@@ -131,11 +133,12 @@ def hiscoresoup(UserData):
             data.append([ele for ele in cols if ele])
         del data[0:3]
         return data
-    except Exception as e:
+    except:
         conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
         cur = conn.cursor()
         dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
-        einput = ''.join(("\"", str(e), "\""))
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", e, "\""))
         cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
         conn.commit()
         return 'error'
@@ -457,7 +460,7 @@ parsecategories()
 
 async def schedule_function():
     while True:
-        await asyncio.sleep(300)
+        await asyncio.sleep(10)
         await statmonitor()
 
 bot.run(os.getenv(str('TOKEN')))
