@@ -138,92 +138,122 @@ def hiscoresoup(UserData):
         cur = conn.cursor()
         dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         e = str(traceback.format_exc())
-        einput = ''.join(("\"", e, "\""))
+        einput = ''.join(("\"", UserData[0] , e, "\""))
         cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
         conn.commit()
         return 'error'
 
 
 def statsupdate(data, UserData):
-    conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
-    cur = conn.cursor()
-    dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
-    headers = ['Username', 'Date']
-    stats = [UserData[0], dt]
-    for i in data:
-        if len(i) == 3:
-            headers.append(i[0])
-            headers.append(i[0] + " Rank")
-            headers.append(i[0] + " Score")
-            for i in i[0:]:
-                stats.append(i)
-        elif len(i) == 4:
-            headers.append(i[0])
-            headers.append(i[0] + " Rank")
-            headers.append(i[0] + " Level")
-            headers.append(i[0] + " XP")
-            for i in i[0:]:
-                stats.append(i)
-    headerstring = ', '.join(("\"" + str(header) + "\"" for header in headers))
-    statstring = ', '.join(("\"" + str(stat) + "\"" for stat in stats))
-    print(headerstring)
-    print(statstring)
-    cur.execute("INSERT INTO PlayerStats (" + headerstring + ") VALUES (" + statstring + ")")
-    conn.commit()
+    try:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        headers = ['Username', 'Date']
+        stats = [UserData[0], dt]
+        for i in data:
+            if len(i) == 3:
+                headers.append(i[0])
+                headers.append(i[0] + " Rank")
+                headers.append(i[0] + " Score")
+                for i in i[0:]:
+                    stats.append(i)
+            elif len(i) == 4:
+                headers.append(i[0])
+                headers.append(i[0] + " Rank")
+                headers.append(i[0] + " Level")
+                headers.append(i[0] + " XP")
+                for i in i[0:]:
+                    stats.append(i)
+        headerstring = ', '.join(("\"" + str(header) + "\"" for header in headers))
+        statstring = ', '.join(("\"" + str(stat) + "\"" for stat in stats))
+        print(headerstring)
+        print(statstring)
+        cur.execute("INSERT INTO PlayerStats (" + headerstring + ") VALUES (" + statstring + ")")
+        conn.commit()
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", UserData[0] , e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 
 def getusers():
-    Users = []
-    conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM Users")
-    rows = cur.fetchall()
-    for i in rows:
-        Users.append(list(i))
-    return Users
+    try:
+        Users = []
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM Users")
+        rows = cur.fetchall()
+        for i in rows:
+            Users.append(list(i))
+        return Users
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'getusers', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 
 def statcompare(UserData):
-    print(UserData[0])
-    compstats = []
-    finalstats = []
-    conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM PlayerStats WHERE Username = ? ORDER BY Date DESC LIMIT 2", (UserData[0],))
-    rows = cur.fetchall()
-    NewRow = list(rows[0])
-    OldRow = list(rows[1])
-    rowdata = [NewRow, OldRow]
-    cur.execute("SELECT * FROM Categories")
-    rows = cur.fetchall()
-    for row in rowdata:
-        tempstats = []
-        for category in rows:
-            if category[0] in row:
-                index = row.index(category[0])
-                if category[1] == "Skill":
-                    tempstats.append([row[index], row[index + 2]])
-                elif category[1] == "KC":
-                    tempstats.append([row[index], row[index + 2]])
-        compstats.append(tempstats)
-    oldstatcategories = []
-    for i in compstats[1]:
-        oldstatcategories.append(i[0])
+    try:
+        print(UserData[0])
+        compstats = []
+        finalstats = []
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM PlayerStats WHERE Username = ? ORDER BY Date DESC LIMIT 2", (UserData[0],))
+        rows = cur.fetchall()
+        NewRow = list(rows[0])
+        OldRow = list(rows[1])
+        rowdata = [NewRow, OldRow]
+        cur.execute("SELECT * FROM Categories")
+        rows = cur.fetchall()
+        for row in rowdata:
+            tempstats = []
+            for category in rows:
+                if category[0] in row:
+                    index = row.index(category[0])
+                    if category[1] == "Skill":
+                        tempstats.append([row[index], row[index + 2]])
+                    elif category[1] == "KC":
+                        tempstats.append([row[index], row[index + 2]])
+            compstats.append(tempstats)
+        oldstatcategories = []
+        for i in compstats[1]:
+            oldstatcategories.append(i[0])
 
-    for i in compstats[0]:
-        compindex = compstats[0].index(i)
-        if i[0] not in oldstatcategories:
-            finalstats.append([UserData[0], i[0], 'None', i[1]])
-            del compstats[0][compindex]
+        for i in compstats[0]:
+            compindex = compstats[0].index(i)
+            if i[0] not in oldstatcategories:
+                finalstats.append([UserData[0], i[0], 'None', i[1]])
+                del compstats[0][compindex]
 
-    compstats[0].sort()
-    compstats[1].sort()
+        compstats[0].sort()
+        compstats[1].sort()
 
-    for i in compstats[0]:
-        compindex = compstats[0].index(i)
-        if i not in compstats[1]:
-            finalstats.append([UserData[0], i[0], compstats[1][compindex][1], i[1]])
-    return finalstats
+        for i in compstats[0]:
+            compindex = compstats[0].index(i)
+            if i not in compstats[1]:
+                finalstats.append([UserData[0], i[0], compstats[1][compindex][1], i[1]])
+        return finalstats
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", UserData[0] , e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 
 def dbconnection(db_file):
@@ -346,15 +376,26 @@ def verifyuser(dbformat):
 
 async def statmonitor():
     UserData = getusers()
+    if UserData == "error":
+        print("getusers - An error has occurred at " + str(datetime.now()) + " for " + str(UserData[0]))
+        return
     output = []
     for iud in UserData:
         Data = hiscoresoup(iud)
         if Data == "error":
-            print("An error has occurred at " + str(datetime.now()))
+            print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        statsupdate(Data, iud)
+        sureturn = statsupdate(Data, iud)
+        if sureturn == "error":
+            print("statsupdate - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
+            continue
+        else: pass
         FinalStats = statcompare(iud)
+        if FinalStats == "error":
+            print("statcompare - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
+            continue
+        else: pass
         for stats in FinalStats:
             if stats:
                 output.append(stats)
@@ -460,7 +501,7 @@ parsecategories()
 
 async def schedule_function():
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(300)
         await statmonitor()
 
 bot.run(os.getenv(str('TOKEN')))
