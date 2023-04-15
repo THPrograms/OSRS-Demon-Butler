@@ -9,6 +9,7 @@ from PIL import ImageFilter
 import random
 import asyncio
 import traceback
+from github import Github
 from discord.ui import Button, View
 
 
@@ -63,6 +64,26 @@ async def unregister(ctx: commands.Context):
         conn.commit()
         await ctx.send("User Has Been Unregistered From Receiving HiScore Alerts On This Server")
 
+@bot.command()
+async def suggest(ctx: commands.Context):
+    try:
+        GH = Github(os.getenv(str('GHTOKEN')))
+        repo = GH.get_repo("THPrograms/RuneBot")
+        input = list(ctx.message.content.split()[1:])
+        strinput = ' '.join([str(i) for i in input])
+        print (strinput)
+        dt = datetime.now().strftime(" %m/%d %M.%S")
+        issue = repo.create_issue(title=str(ctx.author.name + dt), body=strinput)
+        await ctx.send("Suggestion submitted!")
+    except:
+        await ctx.send("An error has occurred. Error logged. Please try again later.")
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'Suggest', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
 
 @bot.command()
 async def registered(ctx: commands.Context):
@@ -409,7 +430,7 @@ async def statmonitor():
     print(output)
     print("Ran at: " + str(datetime.now()))
 
-mssgbar = 'Tbot:'
+mssgbar = 'RuneBot:'
 
 
 def gaussian_blur(newimage):
@@ -504,4 +525,4 @@ async def schedule_function():
         await asyncio.sleep(300)
         await statmonitor()
 
-bot.run(os.getenv(str('TOKEN')))
+bot.run(os.getenv(str('RUNEBOTTOKEN')))
