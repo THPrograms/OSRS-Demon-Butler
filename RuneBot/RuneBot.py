@@ -86,6 +86,77 @@ async def suggest(ctx: commands.Context):
         conn.commit()
 
 @bot.command()
+async def skill(ctx: commands.Context):
+    ctx.content = (ctx.message.content).title()
+    SkillLookup = ctx.message.content.split()[1]
+    pnameinput = ctx.message.content.split()[2:]
+
+    def listtostring(pnameinput):
+        str1 = " "
+        return (str1.join(pnameinput)).replace(" ", "%A0")
+    def listtostring2(pnameinput):
+        str1 = " "
+        return (str1.join(pnameinput))
+
+    print (listtostring(pnameinput))
+    print (SkillLookup)
+
+    import requests
+    import lxml.html as lh
+
+
+    url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + (listtostring(pnameinput))
+    # Create a handle, page, to handle the contents of the website
+    page = requests.get(url)
+    # Store the contents of the website under doc
+    doc = lh.fromstring(page.content)
+    # Parse data that are stored between <tr>..</tr> of HTML
+    tr_elements = doc.xpath('//tr')
+    # Create empty list
+    col = []
+    i = 0
+    # For each row, store each first element (header) and an empty list
+    pstats = ""
+    for t in tr_elements[0]:
+        i += 1
+        name = t.text_content()
+        pstats = pstats + ('%d:"%s"' % (i, name))
+
+
+    file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "w+")
+
+    file1.write(str(pstats))
+    file1.close()
+
+    file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "r")
+
+    flag = 0
+    index = 0
+    # Grabbing Line That Silk Cart group data is on
+    for line in file1:
+        index += 1
+
+        if SkillLookup in line:
+            flag = 1
+            break
+
+    if flag == 0:
+        await ctx.channel.send('```' + SkillLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.message.author))
+    else:
+        file1.close()
+
+        file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "r")
+
+        personalstats = file1.readlines()
+        # combining the variables
+        skill = (personalstats[index - 1]).strip()
+        prank = (personalstats[index + 1]).strip()
+        plevel = (personalstats[index + 2]).strip()
+        pxp = (personalstats[index + 3]).strip()
+        await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nSkill: ' + skill + '\nRank: ' + prank + '\nLevel: ' + plevel + '\nXP: ' + pxp + '```'.format(ctx.message.author))
+
+
+@bot.command()
 async def registered(ctx: commands.Context):
     guild = ctx.message.guild.id
     conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
