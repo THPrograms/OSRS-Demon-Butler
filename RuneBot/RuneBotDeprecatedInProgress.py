@@ -5,6 +5,7 @@ import time
 from discord.ext import commands
 
 #establishing connection with discord
+
 TOKEN = 'OTA3MDc1OTU2ODc3OTU5MTcw.G_wZ61.MqgT-iCMf5e0DU9jr92IcrTnOHnTKAJ_OL86vY'
 
 client = discord.Client()
@@ -25,7 +26,6 @@ hslist = ['Overall', 'Attack', 'Defence', 'Strength', 'Hitpoints', 'Ranged', 'Pr
           'TzKal-Zuk', 'TzTok-Jad', 'Venenatis', "Vet'ion", 'Vorkath', 'Wintertodt', 'Zalcano', 'Zulrah','N/A']
 
 
-
 @client.event
 async def on_message(message):
     # we do not want the bot to reply to itself
@@ -42,11 +42,11 @@ async def on_message(message):
 
         def listtostring(gnameinput):
             str1 = " "
-            return (str1.join(gnameinput)).replace(" ","+")
+            return (str1.join(gnameinput)).replace(" ", "+")
 
         def listtostring2(gnamelast):
             str1 = " "
-            return (str1.join(gnamelast)).replace(" ","+")
+            return (str1.join(gnamelast)).replace(" ", "+")
 
         import requests
 #designating the web url to pull from
