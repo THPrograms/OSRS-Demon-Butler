@@ -1,7 +1,8 @@
 
 import requests
 
-response = requests.get("https://alexnormand-dino-ipsum.p.rapidapi.com/?format=text&words=10&paragraphs=1")
+response = requests.get("https://net.runelite.api")
 
 print(response.status_code)
 
+print(response.json())

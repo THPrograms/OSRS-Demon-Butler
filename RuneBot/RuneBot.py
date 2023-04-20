@@ -86,7 +86,7 @@ async def suggest(ctx: commands.Context):
         strinput = ' '.join([str(i) for i in input])
         print (strinput)
         dt = datetime.now().strftime(" %m/%d %M.%S")
-        issue = repo.create_issue(title=str(ctx.author.name + dt), body=strinput)
+        repo.create_issue(title=str(ctx.author.name + dt), body=strinput)
         await ctx.send("Suggestion submitted!")
     except:
         await ctx.send("An error has occurred. Error logged. Please try again later.")
@@ -126,7 +126,6 @@ async def kc(ctx: commands.Context):
     # Parse data that are stored between <tr>..</tr> of HTML
     tr_elements = doc.xpath('//tr')
     # Create empty list
-    col = []
     i = 0
     # For each row, store each first element (header) and an empty list
     pstats = ""
@@ -154,7 +153,7 @@ async def kc(ctx: commands.Context):
             break
 
     if flag == 0:
-        await ctx.send('```' + BossLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.message.author))
+        await ctx.send('```' + BossLookup + " Does Not Exist Or Does Not Meet Highscore Requirements```".format())
     else:
         file1.close()
 
@@ -165,7 +164,7 @@ async def kc(ctx: commands.Context):
         skillboss = (personalstats[index - 1]).strip()
         prank = (personalstats[index]).strip()
         pscore = (personalstats[index + 1]).strip()
-        await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nBoss: ' + skillboss + '\nRank: ' + prank + '\nScore: ' + pscore + '```'.format(ctx.message.author))
+        await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nBoss: ' + skillboss + '\nRank: ' + prank + '\nScore: ' + pscore + "```".format())
 
 @bot.command()
 async def skill(ctx: commands.Context):
@@ -195,7 +194,6 @@ async def skill(ctx: commands.Context):
     # Parse data that are stored between <tr>..</tr> of HTML
     tr_elements = doc.xpath('//tr')
     # Create empty list
-    col = []
     i = 0
     # For each row, store each first element (header) and an empty list
     pstats = ""
@@ -223,7 +221,7 @@ async def skill(ctx: commands.Context):
             break
 
     if flag == 0:
-        await ctx.channel.send('```' + SkillLookup + ' Does Not Exist Or Does Not Meet Highscore Requirements```'.format(ctx.message.author))
+        await ctx.channel.send('```' + SkillLookup + " Does Not Exist Or Does Not Meet Highscore Requirements```".format())
     else:
         file1.close()
 
@@ -235,7 +233,7 @@ async def skill(ctx: commands.Context):
         prank = (personalstats[index + 1]).strip()
         plevel = (personalstats[index + 2]).strip()
         pxp = (personalstats[index + 3]).strip()
-        await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nSkill: ' + skill + '\nRank: ' + prank + '\nLevel: ' + plevel + '\nXP: ' + pxp + '```'.format(ctx.message.author))
+        await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nSkill: ' + skill + '\nRank: ' + prank + '\nLevel: ' + plevel + '\nXP: ' + pxp + "```".format())
 
 @bot.command()
 async def help(ctx: commands.Context):
@@ -317,7 +315,6 @@ async def player(ctx: commands.Context):
     tr_elements = doc.xpath('//tr')
     print(tr_elements)
     # Create empty list
-    col = []
     i = 0
     # For each row, store each first element (header) and an empty list
     pstats = ""
