@@ -1025,7 +1025,7 @@ def addtext(lvlup, useimage):
     width, height = image.size
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\runescape_uf\runescape_uf.ttf",
-                              15)
+                            15)
     textheight = 43
     draw.text((11, height - 43), mssgbar, (0, 0, 0), font=font)
     for i in lvlup:
