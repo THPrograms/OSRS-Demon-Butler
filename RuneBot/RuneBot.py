@@ -688,6 +688,23 @@ def hiscoresoup(UserData):
         conn.commit()
         return 'error'
 
+def ResultsUpdate(Results):
+    try:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        for i in Results:
+            cur.execute("INSERT INTO UpdateResults VALUES (?, ?, ?, ?, ?)", (dt, i[0], i[1], i[2], i[3]))
+            conn.commit()
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"",  e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 def statsupdate(data, UserData):
     try:
@@ -948,6 +965,7 @@ async def statmonitor():
         print("No stats to report")
     else:
         print("Stats to report")
+        ResultsUpdate(output)
         extendinterface(output)
         await send_message((str(UserData[0][4])), (str(UserData[0][3])),
                            r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
