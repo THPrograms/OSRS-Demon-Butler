@@ -245,7 +245,6 @@ async def help(ctx: commands.Context):
     embedVar.set_footer(text="Version 1.0")
     await ctx.send(embed=embedVar)
 
-
 @bot.command()
 async def registered(ctx: commands.Context):
     guild = ctx.message.guild.id
@@ -1053,6 +1052,8 @@ def addtext(lvlup, useimage):
                   font=font)
     image.save(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
     print('Image created')
+
+
 
 
 """print (extendinterface())"""
