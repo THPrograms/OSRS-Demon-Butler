@@ -91,22 +91,18 @@ def getusers():
         return 'error'
 
 def endofday():
-    users = []
+    users = getusers()
     startendstats = []
     conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
     c = conn.cursor()
-    c.execute("SELECT UserName From Users")
-    rows = c.fetchall()
-    for row in rows:
-        users.append(row[0])
     dt = date.today() - timedelta(5)
     fdt = dt.strftime("%m/%d/%Y")
     sfdt = (fdt+"%")
     for user in users:
-        c.execute("SELECT * FROM PlayerStats WHERE Date LIKE ? AND Username = ? ORDER BY Date DESC LIMIT 1", (sfdt+"%", user))
+        c.execute("SELECT * FROM PlayerStats WHERE Date LIKE ? AND Username = ? ORDER BY Date DESC LIMIT 1", (sfdt+"%", user[0]))
         End = c.fetchall()
         print (End[0])
-        c.execute("SELECT * FROM PlayerStats WHERE Date LIKE ? AND Username = ? ORDER BY Date ASC LIMIT 1", (fdt+"%", user))
+        c.execute("SELECT * FROM PlayerStats WHERE Date LIKE ? AND Username = ? ORDER BY Date ASC LIMIT 1", (fdt+"%", user[0]))
         Start = c.fetchall()
         print (Start[0])
         startendstats.append((Start[0], End[0]))
@@ -118,5 +114,7 @@ def endofday():
 
 #endofday()
 #skilladdtext('Construction', 'OborsBigToe', '99', '200000000', '1', '0', '0')
+
+print (endofday())
 
 print (getvachievements())
