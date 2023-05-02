@@ -3,7 +3,8 @@ from PIL import ImageFilter
 import requests
 import sqlite3
 from datetime import datetime, date, timedelta
-def addtext(Skill, User, Level, XP, Rank, ExpToLvl, RecAchv):
+import traceback
+def skilladdtext(Skill, User, Level, XP, Rank, ExpToLvl, RecAchv):
     image = Image.open(r"C:\Users\THerndon\Documents\GitHub\RuneBot\OSRSInterface\Skill Display.png")
     width, height = image.size
     draw = ImageDraw.Draw(image)
@@ -21,7 +22,7 @@ def addtext(Skill, User, Level, XP, Rank, ExpToLvl, RecAchv):
     print('Image created')
 
 
-###addtext('Construction', 'OborsBigToe', '99', '200000000', '1', '0', '0')
+###
 
 def dbconnection(db_file):
     conn = None
@@ -30,6 +31,64 @@ def dbconnection(db_file):
     except sqlite3.Error as e:
         print(e)
     return conn
+def getcategories():
+    try:
+        Categories = []
+        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM Categories")
+        rows = cur.fetchall()
+        for i in rows:
+            Categories.append(list(i))
+        return Categories
+    except:
+        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'getcategories', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
+
+def getvachievements():
+    try:
+        Users = []
+        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM v_achievements")
+        rows = cur.fetchall()
+        for i in rows:
+            Users.append(list(i))
+        return Users
+    except:
+        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'getusers', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
+def getusers():
+    try:
+        Users = []
+        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM Users")
+        rows = cur.fetchall()
+        for i in rows:
+            Users.append(list(i))
+        return Users
+    except:
+        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'getusers', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 def endofday():
     users = []
@@ -40,7 +99,7 @@ def endofday():
     rows = c.fetchall()
     for row in rows:
         users.append(row[0])
-    dt = date.today() - timedelta(4)
+    dt = date.today() - timedelta(5)
     fdt = dt.strftime("%m/%d/%Y")
     sfdt = (fdt+"%")
     for user in users:
@@ -57,5 +116,7 @@ def endofday():
 
 
 
-endofday()
+#endofday()
+#skilladdtext('Construction', 'OborsBigToe', '99', '200000000', '1', '0', '0')
 
+print (getvachievements())
