@@ -942,22 +942,22 @@ async def statmonitor():
         return
     output = []
     for iud in UserData:
-        Data = hiscoresoup(iud)
-        if Data == "error":
+        data = hiscoresoup(iud)
+        if data == "error":
             print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        sureturn = statsupdate(Data, iud)
+        sureturn = statsupdate(data, iud)
         if sureturn == "error":
             print("statsupdate - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        FinalStats = statcompare(iud)
-        if FinalStats == "error":
+        finalStats = statcompare(iud)
+        if finalStats == "error":
             print("statcompare - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        for stats in FinalStats:
+        for stats in finalStats:
             if stats:
                 output.append(stats)
     if not output:
