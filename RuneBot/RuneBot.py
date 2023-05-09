@@ -279,6 +279,39 @@ async def send_message(guild_id, channel_id, image):
     await channel.send(file=picture)
 
 
+
+@bot.command()
+async def skilltest(ctx: commands.Context):
+    ctx.content = (ctx.message.content).title()
+    Skill = ctx.message.content.split()[1]
+    input = ctx.message.content.split()[1:]
+    if len(input) == 3:
+        finput = str(input[0]) + " " + str(input[1]) + " " + str(input[2])
+    elif len(input) == 2:
+        finput = str(input[0]) + " " + str(input[1])
+    Username = userurl(finput)[1]
+    Url = userurl(finput)[0]
+    data = hiscoresoup([Username, Url])
+    if data == 'error':
+        print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " during skill function")
+        await ctx.send("An error has occurred. Please try again later.")
+        return
+    else: pass
+    sureturn = statsupdate(data, [Username])
+    if sureturn == 'error':
+        print("statsupdate - An error has occurred at " + str(datetime.now()) + " during skill function")
+        await ctx.send("An error has occurred. Please try again later.")
+        return
+    else: pass
+    skillstats = skillfromdb(Username, Skill)
+    if skillstats == 'error':
+        print("skillfromdb - An error has occurred at " + str(datetime.now()) + " during skill function")
+        await ctx.send("An error has occurred. Please try again later.")
+        return
+    else: pass
+    print (skillstats)
+
+
 categorylist = []
 
 @bot.command()
@@ -886,6 +919,24 @@ def updatestatcols():
     print("Column Up To Date")
     pass
 
+def skillfromdb(Username, Skill):
+    try:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        fields = [Skill,"\"" + Skill + " Rank\"", "\"" + Skill + " Level\"", "\"" +Skill + " XP\""]
+        query = "SELECT {0}, {1}, {2}, {3} FROM PlayerStats WHERE Username = ? ORDER BY Date DESC LIMIT 1".format(fields[0], fields[1], fields[2], fields[3])
+        cur.execute(query, (Username,))
+        row = cur.fetchone()
+        return row
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", Username , e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 def userurl(msgcontent):
     msgcontent = msgcontent.split()
@@ -942,22 +993,22 @@ async def statmonitor():
         return
     output = []
     for iud in UserData:
-        Data = hiscoresoup(iud)
-        if Data == "error":
+        data = hiscoresoup(iud)
+        if data == "error":
             print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        sureturn = statsupdate(Data, iud)
+        sureturn = statsupdate(data, iud)
         if sureturn == "error":
             print("statsupdate - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        FinalStats = statcompare(iud)
-        if FinalStats == "error":
+        finalStats = statcompare(iud)
+        if finalStats == "error":
             print("statcompare - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
             continue
         else: pass
-        for stats in FinalStats:
+        for stats in finalStats:
             if stats:
                 output.append(stats)
     if not output:
