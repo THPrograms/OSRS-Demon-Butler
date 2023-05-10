@@ -167,75 +167,6 @@ async def kc(ctx: commands.Context):
         await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nBoss: ' + skillboss + '\nRank: ' + prank + '\nScore: ' + pscore + "```".format())
 
 @bot.command()
-async def skill(ctx: commands.Context):
-    ctx.content = (ctx.message.content).title()
-    SkillLookup = ctx.message.content.split()[1]
-    pnameinput = ctx.message.content.split()[2:]
-
-    def listtostring(pnameinput):
-        str1 = " "
-        return (str1.join(pnameinput)).replace(" ", "%A0")
-    def listtostring2(pnameinput):
-        str1 = " "
-        return (str1.join(pnameinput))
-
-    print (listtostring(pnameinput))
-    print (SkillLookup)
-
-    import requests
-    import lxml.html as lh
-
-
-    url = 'https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=' + (listtostring(pnameinput))
-    # Create a handle, page, to handle the contents of the website
-    page = requests.get(url)
-    # Store the contents of the website under doc
-    doc = lh.fromstring(page.content)
-    # Parse data that are stored between <tr>..</tr> of HTML
-    tr_elements = doc.xpath('//tr')
-    # Create empty list
-    i = 0
-    # For each row, store each first element (header) and an empty list
-    pstats = ""
-    for t in tr_elements[0]:
-        i += 1
-        name = t.text_content()
-        pstats = pstats + ('%d:"%s"' % (i, name))
-
-
-    file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "w+")
-
-    file1.write(str(pstats))
-    file1.close()
-
-    file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "r")
-
-    flag = 0
-    index = 0
-    # Grabbing Line That Silk Cart group data is on
-    for line in file1:
-        index += 1
-
-        if SkillLookup in line:
-            flag = 1
-            break
-
-    if flag == 0:
-        await ctx.channel.send('```' + SkillLookup + " Does Not Exist Or Does Not Meet Highscore Requirements```".format())
-    else:
-        file1.close()
-
-        file1 = open(r"C:\Users\tommy\Documents\GitHub\RuneBot\Pstats", "r")
-
-        personalstats = file1.readlines()
-        # combining the variables
-        skill = (personalstats[index - 1]).strip()
-        prank = (personalstats[index + 1]).strip()
-        plevel = (personalstats[index + 2]).strip()
-        pxp = (personalstats[index + 3]).strip()
-        await ctx.send('```Name: ' + listtostring2(pnameinput) + '\nSkill: ' + skill + '\nRank: ' + prank + '\nLevel: ' + plevel + '\nXP: ' + pxp + "```".format())
-
-@bot.command()
 async def help(ctx: commands.Context):
     embedVar = discord.Embed(title="OSRS High Scores", description="This bot is a work in progress, thank you for giving it a try.", color=0x00fff0, timestamp=datetime.utcnow())
     embedVar.set_thumbnail(url="https://i.imgur.com/ZIsEXmZ.png")
@@ -281,7 +212,7 @@ async def send_message(guild_id, channel_id, image):
 
 
 @bot.command()
-async def skilltest(ctx: commands.Context):
+async def skill(ctx: commands.Context):
     ctx.content = (ctx.message.content).title()
     Skill = ctx.message.content.split()[1]
     input = ctx.message.content.split()[1:]
@@ -309,7 +240,32 @@ async def skilltest(ctx: commands.Context):
         await ctx.send("An error has occurred. Please try again later.")
         return
     else: pass
-    print (skillstats)
+    Rank = int(skillstats[1].replace(',', ''))
+    Level = int(skillstats[2].replace(',', ''))
+    XP = int(skillstats[3].replace(',', ''))
+    xptlvl = xptolvl(Level, XP)
+    if xptlvl == 'error':
+        print("xptolvl - An error has occurred at " + str(datetime.now()) + " during skill function")
+        await ctx.send("An error has occurred. Please try again later.")
+        return
+    else: pass
+    achvmts = getvachievements([Username])
+    if achvmts == 'error':
+        print("getvachievements - An error has occurred at " + str(datetime.now()) + " during skill function")
+        await ctx.send("An error has occurred. Please try again later.")
+        return
+    else: pass
+    if skilladdtext(Skill, Username, Level, XP, Rank, xptlvl, achvmts) == 'error':
+        print("skilladdtext - An error has occurred at " + str(datetime.now()) + " during skill function")
+        await ctx.send("An error has occurred. Please try again later.")
+        return
+    else: pass
+    await ctx.send(file=discord.File(r'C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_SkillDis.png'))
+
+
+
+
+
 
 
 categorylist = []
@@ -676,7 +632,25 @@ async def player(ctx: commands.Context):
     file1.close()
     file2.close()
 
-
+def xptolvl(Level, XP):
+    try:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        NLevel = Level + 1
+        cur.execute("SELECT Exp FROM XPTable WHERE Level = ?", (NLevel,))
+        nextlvlxp = cur.fetchone()[0]
+        nextlvlxp = nextlvlxp.replace(',', '')
+        xptolvl = int(nextlvlxp) - XP
+        return xptolvl
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 def parsecategories():
     soup = soupy('https://secure.runescape.com/m=hiscore_oldschool/overall')
@@ -686,6 +660,58 @@ def parsecategories():
         categorylist[i] = categorylist[i].text.strip()
     updatecategories(categorylist)
     pass
+
+def getvachievements(Users, Limit=5):
+    achvs = []
+    try:
+        for i in Users:
+            conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM v_achievements WHERE UserName = ? ORDER BY Date DESC LIMIT ?", (i, Limit))
+            rows = cur.fetchall()
+            for i in rows:
+                achvs.append(str(i[5]) + ' ' + str(i[2]) + ' -> ' + str(i[3]))
+        return achvs
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'getvachievements', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
+
+def skilladdtext(Skill, User, Level, XP, Rank, ExpToLvl, RecAchv):
+    try:
+        image = Image.open(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Skill Display.png")
+        width, height = image.size
+        achvcoord = 96
+        draw = ImageDraw.Draw(image)
+        font = r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\runescape_uf\OCRAEXT.TTF"
+        titlefont = ImageFont.truetype(font, 26)
+        statfont = ImageFont.truetype(font, 23)
+        recachvfont = ImageFont.truetype(font, 12)
+        draw.text((22, 18), Skill + ' - ' + User, (127,71,221), font=titlefont)
+        draw.text((89, 61), str(Level), (207,144,21), font=statfont)
+        draw.text((67, 93), str(XP), (207,144,21), font=statfont)
+        draw.text((79, 124), str(Rank), (207,144,21), font=statfont)
+        draw.text((151, 155), str(ExpToLvl), (207,144,21), font=statfont)
+        for achv in RecAchv:
+            draw.text((355, achvcoord), achv, (207, 144, 21), font=recachvfont)
+            achvcoord = achvcoord + 16
+        image.save(r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_SkillDis.png")
+        print('Image created')
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'skilladdtext', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
+
 
 
 def soupy(url):

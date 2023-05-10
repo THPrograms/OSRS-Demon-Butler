@@ -72,7 +72,7 @@ def userurl(msgcontent):
         username = msgcontent[1]
         return url, username
 
-@bot.command()
+"""@bot.command()
 async def skill(ctx: commands.Context):
     ctx.content = (ctx.message.content).title()
     Skill = ctx.message.content.split()[1]
@@ -90,10 +90,27 @@ async def skill(ctx: commands.Context):
         print("statsupdate - An error has occurred at " + str(datetime.now()) + " during skill function")
         await ctx.send("An error has occurred. Please try again later.")
         return
-    else: pass
+    else: pass"""
 
 def xptolvl(Level, XP):
-    pass
+    try:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        NLevel = Level + 1
+        cur.execute("SELECT Exp FROM XPTable WHERE Level = ?", (NLevel,))
+        nextlvlxp = cur.fetchone()[0]
+        nextlvlxp = nextlvlxp.replace(',', '')
+        xptolvl = int(nextlvlxp) - XP
+        return nextlvlxp, xptolvl
+    except:
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+        return 'error'
 
 def skillfromdb(Username, Skill):
     try:
@@ -174,7 +191,7 @@ def getvachievements(Users, Limit=5):
     achvs = []
     try:
         for i in Users:
-            conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+            conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
             cur = conn.cursor()
             cur.execute("SELECT * FROM v_achievements WHERE UserName = ? ORDER BY Date DESC LIMIT ?", (i, Limit))
             rows = cur.fetchall()
@@ -182,7 +199,7 @@ def getvachievements(Users, Limit=5):
                 achvs.append(list(i))
         return achvs
     except:
-        conn = dbconnection(r"C:\Users\THerndon\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
         cur = conn.cursor()
         dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
         e = str(traceback.format_exc())
@@ -238,4 +255,5 @@ def endofday(users):
 #print (getvachievements(Users, 5))
 #achievlist = ["DSupreme 777 -> 888","Muspah 40 -> 56","Zalcano 120 -> 172", "Woodcutt 67 -> 68", "Winterto 89 -> 90"]
 #skilladdtext('Construction', 'OborsBigToe', '99', '200000000', '1', '0', achievlist)
-skillfromdb('Oborsbigtoe', 'Attack')
+##skillfromdb('Oborsbigtoe', 'Attack')
+xptolvl(97, 10692629)
