@@ -214,7 +214,7 @@ async def send_message(guild_id, channel_id, image):
 @bot.command()
 async def skill(ctx: commands.Context):
     ctx.content = (ctx.message.content).title()
-    Skill = ctx.message.content.split()[1]
+    Skill = ctx.message.content.split()[1].title()
     input = ctx.message.content.split()[1:]
     if len(input) == 3:
         finput = str(input[0]) + " " + str(input[1]) + " " + str(input[2])
@@ -670,7 +670,7 @@ def getvachievements(Users, Limit=5):
             cur.execute("SELECT * FROM v_achievements WHERE UserName = ? ORDER BY Date DESC LIMIT ?", (i, Limit))
             rows = cur.fetchall()
             for i in rows:
-                achvs.append(str(i[5]) + ' ' + str(i[2]) + ' -> ' + str(i[3]))
+                achvs.append(str(i[5]) + ' ' + str(i[2]) + '->' + str(i[3]))
         return achvs
     except:
         conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
@@ -694,9 +694,9 @@ def skilladdtext(Skill, User, Level, XP, Rank, ExpToLvl, RecAchv):
         recachvfont = ImageFont.truetype(font, 12)
         draw.text((22, 18), Skill + ' - ' + User, (127,71,221), font=titlefont)
         draw.text((89, 61), str(Level), (207,144,21), font=statfont)
-        draw.text((67, 93), str(XP), (207,144,21), font=statfont)
-        draw.text((79, 124), str(Rank), (207,144,21), font=statfont)
-        draw.text((151, 155), str(ExpToLvl), (207,144,21), font=statfont)
+        draw.text((67, 93), "{:,}".format(XP), (207,144,21), font=statfont)
+        draw.text((79, 124), "{:,}".format(Rank), (207,144,21), font=statfont)
+        draw.text((151, 155), "{:,}".format(ExpToLvl), (207,144,21), font=statfont)
         for achv in RecAchv:
             draw.text((355, achvcoord), achv, (207, 144, 21), font=recachvfont)
             achvcoord = achvcoord + 16
