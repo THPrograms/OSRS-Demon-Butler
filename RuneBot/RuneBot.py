@@ -1013,40 +1013,62 @@ def verifyuser(dbformat):
 
 
 async def statmonitor():
+    overalloutput = []
+    channelgroups = []
     UserData = getusers()
     if UserData == "error":
         print("getusers - An error has occurred at " + str(datetime.now()) + " for " + str(UserData[0]))
         return
-    output = []
-    for iud in UserData:
-        data = hiscoresoup(iud)
-        if data == "error":
-            print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
-            continue
-        else: pass
-        sureturn = statsupdate(data, iud)
-        if sureturn == "error":
-            print("statsupdate - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
-            continue
-        else: pass
-        finalStats = statcompare(iud)
-        if finalStats == "error":
-            print("statcompare - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
-            continue
-        else: pass
-        for stats in finalStats:
-            if stats:
-                output.append(stats)
-    if not output:
-        print("No stats to report")
-    else:
-        print("Stats to report")
-        ResultsUpdate(output)
-        extendinterface(output)
-        await send_message((str(UserData[0][4])), (str(UserData[0][3])),
-                           r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
-    print(output)
-    print("Ran at: " + str(datetime.now()))
+    channels = list(dict.fromkeys([(guild[4], guild[3]) for guild in UserData]))
+    for i in channels:
+        group = [user for user in UserData if user[4] == i[0] and user[3] == i[1]]
+        channelgroups.append(group)
+        print(i)
+    print(channelgroups)
+    for group in channelgroups:
+        output = []
+        print ('This be the group ' + str(group))
+        for iud in group:
+            duplicate = False
+            for i in overalloutput:
+                if i[0] == iud[0]:
+                    output.append(i)
+                    duplicate = True
+            if duplicate:
+                continue
+            else: pass
+            print ('This be the iud ' + str(iud))
+            data = hiscoresoup(iud)
+            if data == "error":
+                print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
+                continue
+            else: pass
+            sureturn = statsupdate(data, iud)
+            if sureturn == "error":
+                print("statsupdate - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
+                continue
+            else: pass
+            finalStats = statcompare(iud)
+            if finalStats == "error":
+                print("statcompare - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
+                continue
+            else: pass
+            for stats in finalStats:
+                if stats:
+                    output.append(stats)
+        if not output:
+            print("No stats to report")
+        else:
+            print("Stats to report")
+            ResultsUpdate(output)
+            extendinterface(output)
+            await send_message((str(group[0][4])), (str(group[0][3])),
+                               r"C:\Users\tommy\Documents\GitHub\RuneBot\OSRSInterface\Final_Interface.png")
+        for i in output:
+            overalloutput.append(i)
+
+        print(output)
+        print("Ran at: " + str(datetime.now()))
 
 mssgbar = 'RuneBot:'
 
