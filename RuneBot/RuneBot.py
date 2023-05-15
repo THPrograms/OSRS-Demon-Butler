@@ -209,6 +209,47 @@ async def send_message(guild_id, channel_id, image):
 
     await channel.send(file=picture)
 
+@bot.command()
+async def migrate(ctx: commands.Context):
+    try:
+        oldchannel = ctx.message.content.split()[1]
+        newchannel = ctx.channel.id
+        users = []
+        delusers = []
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("Select UserName FROM Users WHERE CHANNELID= ?", (oldchannel,))
+        rows = cur.fetchall()
+        if not rows:
+            await ctx.send("No users registered to receive hiscore alerts on the provided channel")
+            return
+        else:
+            for i in rows:
+                cur.execute("Select UserName FROM Users WHERE CHANNELID= ? and UserName = ?", (newchannel, i[0]))
+                rows2 = cur.fetchall()
+                if not rows2:
+                    users.append(i[0])
+                    cur.execute("UPDATE Users SET CHANNELID = ? WHERE CHANNELID = ? and UserName = ?", (newchannel, oldchannel, i[0]))
+                    conn.commit()
+                else:
+                    delusers.append(i[0])
+                    cur.execute("DELETE FROM Users WHERE UserName = ? and CHANNELID = ?", (i[0], oldchannel))
+                    conn.commit()
+                    continue
+        if delusers:
+            await ctx.send("The following users have been migrated to this channel and will no longer receive updates on channel " + oldchannel + ": \n" + '\n'.join(users) + "\n\nThe following users were already registered to receive updates on this channel and have been removed from channel " + oldchannel + ": \n" + '\n'.join(delusers))
+            return
+        await ctx.send("The following users have been migrated to this channel and will no longer receive updates on channel "+ oldchannel +": \n" + '\n'.join(users))
+    except:
+        await ctx.send("An error has occurred. Error logged. Please try again later.")
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'migrate', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
+
 
 
 @bot.command()
@@ -1023,11 +1064,8 @@ async def statmonitor():
     for i in channels:
         group = [user for user in UserData if user[4] == i[0] and user[3] == i[1]]
         channelgroups.append(group)
-        print(i)
-    print(channelgroups)
     for group in channelgroups:
         output = []
-        print ('This be the group ' + str(group))
         for iud in group:
             duplicate = False
             for i in overalloutput:
@@ -1037,7 +1075,6 @@ async def statmonitor():
             if duplicate:
                 continue
             else: pass
-            print ('This be the iud ' + str(iud))
             data = hiscoresoup(iud)
             if data == "error":
                 print("hiscoresoup - An error has occurred at " + str(datetime.now()) + " for " + str(iud[0]))
@@ -1067,7 +1104,6 @@ async def statmonitor():
         for i in output:
             overalloutput.append(i)
 
-        print(output)
         print("Ran at: " + str(datetime.now()))
 
 mssgbar = 'RuneBot:'
