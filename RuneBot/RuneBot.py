@@ -255,9 +255,53 @@ async def migrate(ctx: commands.Context):
         cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
         conn.commit()
 
+"""Create a function based on the migrate function above, but instead of migrating users, copy the users to a new channel while leaving old channel users in tact. This should also check to see if a copied user already exists on the new channel"""
+
 @bot.command()
 async def copy(ctx: commands.Context):
-    pass
+    try:
+        oldchannel = ctx.message.content.split()[1]
+        newchannel = ctx.channel.id
+        users = []
+        dupusers = []
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        cur.execute("Select * FROM Users WHERE CHANNELID= ?", (oldchannel,))
+        rows = cur.fetchall()
+        if not rows:
+            await ctx.send("No users registered to receive hiscore alerts on the provided channel")
+            return
+        else:
+            for i in rows:
+                print (i)
+                print (i[0])
+                cur.execute("Select * FROM Users WHERE CHANNELID= ? and UserName = ?", (newchannel, i[0]))
+                rows2 = cur.fetchone()
+                if not rows2:
+                    users.append(i[0])
+                    cur.execute("INSERT INTO Users VALUES (?, ?, ?, ?, ?)",(i[0], i[1], i[2], newchannel, i[4]))
+                    conn.commit()
+                else:
+                    dupusers.append(i[0])
+                    continue
+        if dupusers:
+            await ctx.send(
+                "The following users have been copied to this channel from " + oldchannel + ": \n" + '\n'.join(
+                    users) + "\n\nThe following users were already registered to this channel: \n" + '\n'.join(
+                    dupusers))
+            return
+        await ctx.send(
+            "The following users have been copied to this channel from " + oldchannel + ": \n" + '\n'.join(
+                users))
+    except:
+        await ctx.send("An error has occurred. Error logged. Please try again later.")
+        conn = dbconnection(r"C:\Users\tommy\Documents\GitHub\RuneBot\RuneBot\RuneBotDB.db")
+        cur = conn.cursor()
+        dt = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        e = str(traceback.format_exc())
+        einput = ''.join(("\"", 'copy', e, "\""))
+        cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
+        conn.commit()
 
 @bot.command()
 async def skill(ctx: commands.Context):
