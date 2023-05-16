@@ -211,6 +211,11 @@ async def send_message(guild_id, channel_id, image):
 
 @bot.command()
 async def migrate(ctx: commands.Context):
+    if ctx.message.author.id == 227233730098364417:
+        pass
+    else:
+        await ctx.send("You do not have permission to use this command. Please contact the bot owner Thomikaze#4519")
+        return
     try:
         oldchannel = ctx.message.content.split()[1]
         newchannel = ctx.channel.id
@@ -250,7 +255,9 @@ async def migrate(ctx: commands.Context):
         cur.execute("INSERT INTO ErrorLog VALUES (?, ?)", (dt, einput))
         conn.commit()
 
-
+@bot.command()
+async def copy(ctx: commands.Context):
+    pass
 
 @bot.command()
 async def skill(ctx: commands.Context):
