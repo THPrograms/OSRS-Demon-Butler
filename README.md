@@ -23,7 +23,7 @@ Registers provided Username to receive updates when they level-up a skill, or in
 
 Unregisters provided username from the stat monitor for ALL channels in the server the command is sent in.
 
-![unregister](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/d1bde84e-ba2c-4da2-853a-0b6d638359b3)
+![unregister](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/938a453e-7c69-4d39-abb2-c3121879844d)
 
 #### - !Registered
 
