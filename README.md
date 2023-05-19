@@ -16,21 +16,32 @@ To add OSRS Demon Butler to your discord server, click the link below:
 
 Registers provided Username to receive updates when they level-up a skill, or increase KC on a boss. The update will be sent in the channel that this command is sent in. I suggest creating a channel for this if using this feature.
 
+![register](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/87cb01dd-edd3-48aa-9d38-801ba9e2ab57)
+
+
 #### - !Unregister [OSRS Username]
 
 Unregisters provided username from the stat monitor for ALL channels in the server the command is sent in.
+
+![unregister](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/d1bde84e-ba2c-4da2-853a-0b6d638359b3)
 
 #### - !Registered
 
 Provides a list of users that are registered in ALL channels in the server the command is sent in.
 
+![registered](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/db665dbf-c9cf-4193-a17a-c140909ec2a9)
+
 #### - !Migrate [Channel ID]
 
 Migrates all users registered in provided channel ID to the channel the command is sent in and unregisters them from the channel provided.
 
+![migrate](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/8c8f1873-55b5-4319-a83f-dc35ad34f513)
+
 #### - !Copy [Channel ID]
 
 Functionally similar to the migrate command. Does not unregister users from the provided channel.
+
+![copy](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/a440796e-d02c-48d6-b6cf-070915ca727f)
 
 ### HiScores Stat Pull Commands:
 
@@ -38,13 +49,19 @@ Functionally similar to the migrate command. Does not unregister users from the 
 
 Returns a message displaying the provided player's stats on the [Old School Hiscores](https://secure.runescape.com/m=hiscore_oldschool/overall) in the channel the command was sent in.
 
+![player](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/08a81ec4-90ae-40fe-8bbe-0644535afb56)
+
 #### !Skill [Skill] [OSRS Username]
 
 Returns a message displaying the provided player's stats for the provided skill in the channel the command was sent in.
 
+![skill](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/30164fa3-64ee-437f-b2ba-57805aaa26f9)
+
 #### !KC [Boss/Minigame] [OSRS Username]
 
 Returns a message displaying the provided player's stats for the provided boss/minigame in the channel the command was sent in.
+
+![kc](https://github.com/THPrograms/OSRS-Demon-Butler/assets/117711510/0bf55601-5849-496a-96b1-1fd6d1cd586f)
 
 ### General Commands:
 
